@@ -1,0 +1,101 @@
+import React, { useState } from 'react';
+import { FlatList, View, Text, StyleSheet } from 'react-native';
+
+import Screen from './Screen';
+import DynamicContent from './DynamicContent';
+import SearchBar from './SearchBar';
+import useAllCountriesInfo from './useAllCountriesInfo';
+import Colors from './Color';
+
+const keyExtractor = (item) => item.country;
+
+const CountriesScreen = () => {
+  const {
+    fetchAllCountriesInfo,
+    cancel,
+    isLoading,
+    allCountriesInfo,
+    error,
+  } = useAllCountriesInfo();
+
+  const [search, setSearch] = useState('');
+  const filteredCountries = allCountriesInfo.filter((item) => {
+    return item.country.toLowerCase().includes(search.toLowerCase());
+  });
+
+  const cleanup = () => {
+    cancel();
+    setSearch('');
+  };
+
+  return (
+    <Screen
+      onEnter={fetchAllCountriesInfo}
+      onLeave={cleanup}
+    >
+      <SearchBar
+        value={search}
+        onChange={setSearch}
+      />
+
+      <DynamicContent
+        isLoading={isLoading}
+        hasContent={filteredCountries.length > 0}
+        error={error}
+      >
+        <FlatList
+          data={filteredCountries}
+          keyExtractor={keyExtractor}
+          renderItem={({ item }) => (
+
+            <View style={s.country}>
+              <View style={s.wrapper}>
+                <Text style={[s.text, s.textLarge, s.textWhite]}>
+                  {item.country}
+                </Text>
+
+                <Text style={s.text}>
+                  {`Cases: ${item.cases} | Today: ${item.todayCases} | Active: ${item.active}`}
+                </Text>
+
+                <Text style={s.text}>
+                  {`Deaths: ${item.deaths} | Today: ${item.todayDeaths}`}
+                </Text>
+
+                <Text style={s.text}>
+                  {`Recovered: ${item.recovered} | Critical: ${item.critical}`}
+                </Text>
+              </View>
+            </View>
+
+          )}
+        />
+      </DynamicContent>
+    </Screen>
+  );
+};
+
+const s = StyleSheet.create({
+  country: {
+    backgroundColor: '#1a1b1f',
+    paddingLeft: 15,
+  },
+  wrapper: {
+    paddingTop: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(125, 125, 127, 0.1)',
+  },
+  text: {
+    fontSize: 14,
+    color: '#7d7d7f',
+  },
+  textWhite: {
+    color: Colors.white,
+  },
+  textLarge: {
+    fontSize: 24,
+  },
+});
+
+export default CountriesScreen;

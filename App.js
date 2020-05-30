@@ -1,40 +1,78 @@
-import * as React from 'react';
-import { Platform, StyleSheet, Text, View, Image } from 'react-native';
-import logo from './assets/logo.png';
+import React, { useEffect, useState } from 'react';
+import { StatusBar, StyleSheet, View } from 'react-native';
+import { SplashScreen } from 'expo';
+import * as Font from 'expo-font';
+import { Ionicons } from '@expo/vector-icons';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-const instructions = Platform.select({
-  ios: `Press Cmd+R to reload,\nCmd+D or shake for dev menu`,
-  android: `Double tap R on your keyboard to reload,\nShake or press menu button for dev menu`,
-});
+import BottomTabNavigator from './BottomTabNavigator';
+import Colors from './Color';
+import GlobalStateContext from './GlobalStateContext';
 
-export default function App() {
+const Stack = createStackNavigator();
+
+const loadFonts = async () => {
+  await Font.loadAsync({
+    ...Ionicons.font,
+    'space-mono': require('./SpaceMono-Regular.ttf'),
+  });
+};
+
+export default function App(props) {
+  const [isLoadingComplete, setLoadingComplete] = useState(false);
+
+  // Load any resources or data that we need prior to rendering the app
+  useEffect(() => {
+    async function loadResourcesAndDataAsync() {
+      try {
+        SplashScreen.preventAutoHide();
+        await loadFonts();
+      } catch (e) {
+        // We might want to provide this error information to an error reporting service
+        console.warn(e);
+      } finally {
+        setLoadingComplete(true);
+        SplashScreen.hide();
+      }
+    }
+
+    loadResourcesAndDataAsync();
+  }, []);
+
+  if (!isLoadingComplete && !props.skipLoadingScreen) {
+    return null;
+  }
+
   return (
-    <View style={styles.container}>
-      <Image source={{uri: "https://i.imgur.com/TkIrScD.png"}} style={{width:305, height:159}} />
-      <Image source={logo} style={{width:305, height:159}} />
+    <GlobalStateContext>
+      <View style={s.root}>
+        <StatusBar barStyle="default" />
 
-      <Text style={{color:'#888', fontSize:18}}>
-        To share a photo from your phone with a friend, just press the button below!
-      </Text>
-    </View>
-  );
+        <NavigationContainer>
+          <Stack.Navigator
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: Colors.black,
+              },
+              headerTitleStyle: {
+                color: Colors.white,
+              },
+            }}
+          >
+            <Stack.Screen
+              name="Root"
+              component={BottomTabNavigator}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </View>
+    </GlobalStateContext>
+  ); 
 }
-
-const styles = StyleSheet.create({
-  container: {
+ 
+const s = StyleSheet.create({
+  root: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
   },
 });

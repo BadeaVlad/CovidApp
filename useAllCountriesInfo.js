@@ -1,0 +1,53 @@
+import { useState, useContext, useRef } from 'react';
+import { Context } from './GlobalStateContext';
+import Api from './Api';
+
+const ignored = ['World', '', 'Total:'];
+
+const fetchData = async (url, { controller }) => {
+  const res = await fetch(url, { signal: controller.current.signal });
+  const data = await res.json();
+
+  return { data, isFresh: true };
+};
+
+const useAllCountriesInfo = () => {
+  const { allCountriesInfo, setAllCountriesInfo } = useContext(Context);
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const controller = useRef(new AbortController());
+
+  const cancel = () => {
+    controller.current.abort();
+  };
+
+  const fetchAllCountriesInfo = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      controller.current = new AbortController();
+
+      let { data } = await fetchData(Api.fetchAllCountriesInfo, { controller });
+      data = data.filter((item) => !ignored.includes(item.country));
+
+      setAllCountriesInfo(data);
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        setError(error);
+      }
+    }
+
+    setLoading(false);
+  };
+
+  return {
+    fetchAllCountriesInfo,
+    cancel,
+    isLoading,
+    allCountriesInfo,
+    error,
+  };
+};
+
+export default useAllCountriesInfo;
