@@ -16,20 +16,8 @@ const openApiRepository = () => {
 const CountriesScreen = () => {
   return (
     <Screen style={s.root}>
-      <Text style={s.text}>Made by Pavel Ermakov</Text>
+      <Text style={s.text}>Made by Badea Vlad</Text>
       <Text style={s.text}>with React-Native and Expo</Text>
-
-      <Button
-        title="View code"
-        onPress={openAppRepository}
-      />
-
-      <View style={s.gap} />
-
-      <Button
-        title="View api"
-        onPress={openApiRepository}
-      />
     </Screen>
   );
 };
